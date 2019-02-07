@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/extensions
-import PhonesPage from './phone/phones-page.js';
+import PhonesTable from './phones-table/phones-table.js';
 
 // eslint-disable-next-line no-unused-vars
-const currentPage = new PhonesPage({
+const currentPage = new PhonesTable({
   element: document.querySelector('[data-component-main]'),
 });

@@ -1,1 +1,25 @@
-/* app css stylesheet */
+/* app css style sheet */
+body {
+  padding-top: 20px;
+  background-color: beige; }
+
+.container-fluid {
+  width: 100%; }
+
+.row {
+  width: 100%; }
+
+.table {
+  border-collapse: separate;
+  border-spacing: 0 0; }
+
+.table__head {
+  font-size: 3vh;
+  border: 1px solid black; }
+
+.table__item {
+  font-size: 3vh;
+  border: 1px solid grey; }
+
+.small__img {
+  width: 100px; }
