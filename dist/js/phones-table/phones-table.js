@@ -1,59 +1,68 @@
 // eslint-disable-next-line import/extensions
 import PhonesServices from '../phone-service/phone-services.js';
+// eslint-disable-next-line import/extensions
+import Components from './components/components.js';
 
-export default class PhonesTable {
+export default class PhonesTable extends Components {
   constructor({ element }) {
-    this._element = element;
+    super({ element });
+    this.sortUpDown = true;
     this._phones = [];
     this._phonesTemp = [];
-    this._getPhonesFromServer();
+    this._getData();
 
-    this._element.addEventListener('click', (event) => {
-      const sortedElem = event.target.closest('[data-table-item]');
+    this._element.addEventListener('click', this.debounce((event) => {
+      const sortedElem = event.target.closest('[data-table-sort]');
       if (!sortedElem) { return; }
-      const sortBy = sortedElem.dataset.tableItem;
-      this._phones = this._phones.sort((a, b) => {
-        if (a[sortBy] > b[sortBy]) {
-          return 1;
-        }
-        if (a[sortBy] < b[sortBy]) {
-          return -1;
-        }
-        return 0;
-      });
-      this.show();
-    });
+      const sortBy = sortedElem.dataset.tableSort;
+      this.sortUpDown = !this.sortUpDown;
+      this._phones = this.sortPhones(this._phones, sortBy, this.sortUpDown);
+      this._render();
+    }, 100));
 
-    function clickEveryButton(fun, ms) {
-      let timer = null;
-      // eslint-disable-next-line func-names
-      return function () {
-        if (timer) {
-          clearTimeout(timer);
-        }
-        timer = setTimeout(() => {
-          // eslint-disable-next-line prefer-rest-params
-          fun.apply(this, arguments);
-        }, ms);
-      };
-    }
-
-    document.addEventListener('keypress', clickEveryButton((event) => {
+    document.addEventListener('keydown', this.debounce((event) => {
       const delegateTarget = event.target.closest('[data-input-search]');
       if (!delegateTarget) { return; }
-      this._phones = this._phonesTemp.filter(phone => phone.name.toLowerCase()
-        .includes(delegateTarget.value.toLowerCase()));
-      this.show();
+      this._phones = this._phonesTemp.filter((phone) => {
+        return Object.values(phone)
+          .find(value => value.isSearchable && value.content.toLowerCase()
+            .includes(delegateTarget.value.toLowerCase()));
+      });
+      this._render();
     }, 500));
   }
 
-  async _getPhonesFromServer() {
-    this._phones = await PhonesServices._getPhones();
-    this._phonesTemp = this._phones;
-    this.show();
-  }
+  async _getData() {
+    const phoneData = await PhonesServices._getPhones();
+    phoneData.forEach((phone) => {
+      // eslint-disable-next-line no-param-reassign
+      const newPhone = {
+        age: {
+          title: 'Возраст',
+          content: phone.age,
+          isSortable: true,
+        },
+        name: {
+          title: 'Наименование',
+          content: phone.name,
+          isSortable: true,
+          isSearchable: true,
+        },
+        imageUrl: {
+          title: 'Картинка',
+          content: phone.imageUrl,
+          isImage: true,
+        },
+        snippet: {
+          title: 'Описание',
+          content: phone.snippet,
+          isSearchable: true,
+        },
+      };
+      this._phones.push(newPhone);
+    });
 
-  show() {
+    this._phonesTemp = this._phones;
     this._render();
   }
 
@@ -61,21 +70,35 @@ export default class PhonesTable {
     this._element.innerHTML = `
     
       <table class="table">
-        <tbody>
+        <thead>
           <tr data-table-header>
-            <th class="table__head table__filtered" data-table-item="age">AGE</th>
-            <th class="table__head table__filtered" data-table-item="name">NAME</th>
-            <th class="table__head">IMAGE</th>
-            <th class="table__head">SNIPPET</th>
+
+          ${Object.entries(this._phonesTemp[0]).map(([key, value]) => `
+
+          <th ${value.isSortable ? `
+            class="table__head table__filtered" data-table-sort="${key}"
+            ` : 'class="table__head"'}>
+            ${value.title}
+          </th>
+
+          `).join('')}
           </tr>
+        </thead>
+        <tbody>
           ${this._phones.map(phone => `
             <tr>    
-              <td class="table__item">${phone.age}</td>  
-              <td class="table__item">${phone.name}</td>
-              <td class="table__item">
-                <img class="small__img" src = ${phone.imageUrl}
-              </td>
-              <td class="table__item">${phone.snippet}</td>
+              ${Object.values(phone).map(value => `
+
+                <td class="table__item" ${value.isSearchable ? `
+                  data-table-search="${phone.name.content}"` : ''}>
+
+                  ${value.isImage ? `
+                  <img class="small__img" src=${value.content}
+                  ` : `${value.content}`}
+
+                </td>
+
+              `).join('')}
             </tr>
           `).join('')}
           
