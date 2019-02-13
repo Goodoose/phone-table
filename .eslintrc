@@ -1,10 +1,13 @@
 {
   "extends": "airbnb",
   "env": {
-    "browser": true
+    "browser": true,
+    "es6": true
   },
   "rules": {
-    "no-plusplus": 0,
-    "no-underscore-dangle": [0, { "allowAfterThis": false }]
+    "no-plusplus": "off",
+    "no-underscore-dangle": [2, { "allowAfterThis": true }],
+    "template-curly-spacing": "off",
+    "import/extensions": "off"
   }
 }

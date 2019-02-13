@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/extensions
 import PhonesTable from './phones-table/phones-table.js';
 
 // eslint-disable-next-line no-unused-vars
